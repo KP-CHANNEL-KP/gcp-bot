@@ -2,7 +2,7 @@ import sys
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service # Service class အသစ်ကို ထည့်သွင်းထားသည်
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -119,8 +119,30 @@ def execute_cloud_shell(driver):
         EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Activate Cloud Shell"]'))
     )
     cloud_shell_button.click()
-    
-    # 2. Cloud Shell Terminal ပေါ်လာသည်အထိ စောင့်ဆိုင်းခြင်း
+
+    # 2. **အသစ်ထပ်တိုး:** "Continue" ခလုတ်ကို စစ်ဆေးပြီး နှိပ်ခြင်း
+    try:
+        continue_button = wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'CONTINUE')]"))
+        )
+        continue_button.click()
+        print("✅ Cloud Shell ၏ 'CONTINUE' ခလုတ်ကို နှိပ်ပြီးပါပြီ။")
+    except:
+        print("ℹ️ 'CONTINUE' Dialog မတွေ့ရပါ။ ဆက်လက်လုပ်ဆောင်ပါမည်။")
+        pass
+
+    # 3. **အသစ်ထပ်တိုး:** "AUTHORIZE" ခလုတ်ကို စစ်ဆေးပြီး နှိပ်ခြင်း
+    try:
+        authorize_button = wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'AUTHORIZE')]"))
+        )
+        authorize_button.click()
+        print("✅ Cloud Shell ၏ 'AUTHORIZE' ခလုတ်ကို နှိပ်ပြီးပါပြီ။")
+    except:
+        print("ℹ️ 'AUTHORIZE' Dialog မတွေ့ရပါ။ ဆက်လက်လုပ်ဆောင်ပါမည်။")
+        pass
+
+    # 4. Cloud Shell Terminal ပေါ်လာသည်အထိ စောင့်ဆိုင်းခြင်း
     print("⏳ Terminal ပေါ်လာသည်အထိ စောင့်ဆိုင်းနေပါသည်။...")
     cloud_shell_input_selector = 'span[role="textbox"][aria-label="Cloud Shell Terminal"]'
     
@@ -131,12 +153,14 @@ def execute_cloud_shell(driver):
     # Terminal Ready ဖြစ်ဖို့ သေချာအောင် ခဏစောင့်
     time.sleep(5) 
     
-    # 3. Script ကို ရိုက်ထည့်ပြီး Enter နှိပ်ခြင်း
+    # 5. Script ကို ရိုက်ထည့်ပြီး Enter နှိပ်ခြင်း
+    global CLOUD_SHELL_COMMAND
     print(f"Executing: {CLOUD_SHELL_COMMAND}")
     cloud_shell_input.send_keys(CLOUD_SHELL_COMMAND)
     cloud_shell_input.send_keys(Keys.ENTER)
     
-    # 4. Enter Key (၁၀) ကြိမ် ပို့လွှတ်ခြင်း
+    # 6. Enter Key (၁၀) ကြိမ် ပို့လွှတ်ခြင်း
+    global TOTAL_ENTERS
     print(f"Sending {TOTAL_ENTERS} Enter Keys to handle prompts...")
     time.sleep(5) 
     
