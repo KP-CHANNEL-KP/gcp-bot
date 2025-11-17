@@ -29,20 +29,16 @@ TOTAL_ENTERS = 10
 DELAY_BETWEEN_ENTERS = 0.5 
 
 # 4. Chrome Headless Options များ သတ်မှတ်ခြင်း (VPS အတွက်)
-# Chromium Install လုပ်ထားသော Path များကို တိကျစွာ သတ်မှတ်ခြင်း
 CHROME_DRIVER_PATH = "/usr/lib/chromium-browser/chromedriver"
 CHROMIUM_BINARY_PATH = "/usr/bin/chromium-browser"
 
 chrome_options = Options()
-
-# Binary Location ကို သတ်မှတ်ခြင်း
 chrome_options.binary_location = CHROMIUM_BINARY_PATH
-
 chrome_options.add_argument("--headless")              
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--window-size=1920,1080")  
-chrome_options.add_argument('--disable-gpu') # Timeout မဖြစ်အောင် ကူညီနိုင်သော Argument
+chrome_options.add_argument('--disable-gpu') 
 
 # ====================================================================
 # AUTOMATION FUNCTIONS
@@ -52,7 +48,6 @@ def setup_browser():
     """Chrome Driver ကို စတင်ပြီး Console Link သို့ သွားရောက်ခြင်း။"""
     print("🚀 Automation စတင်ပါသည်။")
     try:
-        # Service ကို သုံးပြီး Driver Path ကို တိကျစွာ ပေးခြင်း
         service = Service(executable_path=CHROME_DRIVER_PATH)
         driver = webdriver.Chrome(service=service, options=chrome_options)
         
@@ -68,9 +63,8 @@ def handle_console_setup(driver):
     wait = WebDriverWait(driver, 20)
     print("🛠️ Console Setup (I understand, Country Select, Agree) များကို စတင် လုပ်ဆောင်နေပါသည်။")
 
-    # 1. "I understand" နှိပ်ခြင်း
+    # 1. "I understand" နှိပ်ခြင်း (ပုံ ၁ အရ)
     try:
-        # GCP Console ရဲ့ Welcome Dialog ပေါ်လာသည်အထိ စောင့်ဆိုင်းခြင်း
         i_understand_button = wait.until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'I understand')]"))
         )
@@ -79,7 +73,7 @@ def handle_console_setup(driver):
     except:
         print("ℹ️ Welcome Dialog (I understand) မတွေ့ရပါ။ ဆက်လက်လုပ်ဆောင်ပါမည်။")
 
-    # 2. Country ရွေးခြင်း နှင့် Terms of Service သဘောတူခြင်း
+    # 2. Country ရွေးခြင်း နှင့် Terms of Service သဘောတူခြင်း (ပုံ ၂ အရ)
     try:
         # Terms of Service Dialog ပေါ်လာသည်အထိ စောင့်ဆိုင်းခြင်း
         agree_and_continue_button = wait.until(
@@ -87,9 +81,10 @@ def handle_console_setup(driver):
         )
         
         # Country Select (Singapore)
+        # XPath ကို သုံးထားသည်
         country_select = driver.find_element(By.TAG_NAME, "md-select")
         country_select.click()
-        time.sleep(1) # Dropdown ပေါ်လာဖို့ စောင့်ဆိုင်း
+        time.sleep(1) 
         
         # Singapore ကို ရွေးရန်
         singapore_option = driver.find_element(By.XPATH, "//md-option[contains(., 'Singapore')]")
@@ -106,11 +101,13 @@ def handle_console_setup(driver):
         print("✅ 'AGREE AND CONTINUE' နှိပ်ပြီး Dashboard သို့ သွားနေပါသည်။")
         
     except Exception as e:
+        # ဒီ Dialog မပေါ်လာရင် ဆက်သွားပါ
         print(f"ℹ️ Console Setup Dialog များ ပြီးစီးသွားပါပြီ။")
         pass
 
 def execute_cloud_shell(driver):
     """Cloud Shell ဖွင့်ခြင်း၊ Script Run ခြင်းနှင့် Enter Key များ ပို့လွှတ်ခြင်း။"""
+    # စောင့်ဆိုင်းချိန် 90s သို့ တိုးမြှင့်ထားသည်
     wait = WebDriverWait(driver, 90)
     
     # 1. Cloud Shell Button ကို နှိပ်ခြင်း
@@ -120,20 +117,21 @@ def execute_cloud_shell(driver):
     )
     cloud_shell_button.click()
 
-    # 2. **အသစ်ထပ်တိုး:** "Continue" ခလုတ်ကို စစ်ဆေးပြီး နှိပ်ခြင်း
+    # 2. **"CONTINUE"** ခလုတ်ကို စစ်ဆေးပြီး နှိပ်ခြင်း (ပုံ ၃ အရ - Main Page တွင် တိုက်ရိုက် ရှာဖွေ)
     try:
-        continue_button = wait.until(
+        dialog_wait = WebDriverWait(driver, 45) 
+        continue_button = dialog_wait.until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'CONTINUE')]"))
         )
         continue_button.click()
         print("✅ Cloud Shell ၏ 'CONTINUE' ခလုတ်ကို နှိပ်ပြီးပါပြီ။")
     except:
         print("ℹ️ 'CONTINUE' Dialog မတွေ့ရပါ။ ဆက်လက်လုပ်ဆောင်ပါမည်။")
-        pass
-
-    # 3. **အသစ်ထပ်တိုး:** "AUTHORIZE" ခလုတ်ကို စစ်ဆေးပြီး နှိပ်ခြင်း
+        
+    # 3. **"AUTHORIZE"** ခလုတ်ကို စစ်ဆေးပြီး နှိပ်ခြင်း (ပုံ ၄ အရ - Main Page တွင် တိုက်ရိုက် ရှာဖွေ)
     try:
-        authorize_button = wait.until(
+        dialog_wait = WebDriverWait(driver, 45)
+        authorize_button = dialog_wait.until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'AUTHORIZE')]"))
         )
         authorize_button.click()
@@ -141,9 +139,14 @@ def execute_cloud_shell(driver):
     except:
         print("ℹ️ 'AUTHORIZE' Dialog မတွေ့ရပါ။ ဆက်လက်လုပ်ဆောင်ပါမည်။")
         pass
-
+        
     # 4. Cloud Shell Terminal ပေါ်လာသည်အထိ စောင့်ဆိုင်းခြင်း
     print("⏳ Terminal ပေါ်လာသည်အထိ စောင့်ဆိုင်းနေပါသည်။...")
+    
+    # Terminal input field သည် iframe အတွင်း၌ရှိသည်၊ ထို iframe ကို စောင့်ဆိုင်းပြီး switch လုပ်ရန်လိုအပ်သည်
+    wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[title='Google Cloud Console Terminal']")))
+
+    # 5. Terminal ၏ input field ကို Iframe အတွင်းမှ ရှာဖွေခြင်း
     cloud_shell_input_selector = 'span[role="textbox"][aria-label="Cloud Shell Terminal"]'
     
     cloud_shell_input = wait.until(
@@ -153,13 +156,13 @@ def execute_cloud_shell(driver):
     # Terminal Ready ဖြစ်ဖို့ သေချာအောင် ခဏစောင့်
     time.sleep(5) 
     
-    # 5. Script ကို ရိုက်ထည့်ပြီး Enter နှိပ်ခြင်း
+    # 6. Script ကို ရိုက်ထည့်ပြီး Enter နှိပ်ခြင်း
     global CLOUD_SHELL_COMMAND
     print(f"Executing: {CLOUD_SHELL_COMMAND}")
     cloud_shell_input.send_keys(CLOUD_SHELL_COMMAND)
     cloud_shell_input.send_keys(Keys.ENTER)
     
-    # 6. Enter Key (၁၀) ကြိမ် ပို့လွှတ်ခြင်း
+    # 7. Enter Key (၁၀) ကြိမ် ပို့လွှတ်ခြင်း
     global TOTAL_ENTERS
     print(f"Sending {TOTAL_ENTERS} Enter Keys to handle prompts...")
     time.sleep(5) 
