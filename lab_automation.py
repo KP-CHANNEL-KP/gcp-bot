@@ -2,6 +2,7 @@ import sys
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service # Service class အသစ်ကို ထည့်သွင်းထားသည်
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -28,11 +29,20 @@ TOTAL_ENTERS = 10
 DELAY_BETWEEN_ENTERS = 0.5 
 
 # 4. Chrome Headless Options များ သတ်မှတ်ခြင်း (VPS အတွက်)
+# Chromium Install လုပ်ထားသော Path များကို တိကျစွာ သတ်မှတ်ခြင်း
+CHROME_DRIVER_PATH = "/usr/lib/chromium-browser/chromedriver"
+CHROMIUM_BINARY_PATH = "/usr/bin/chromium-browser"
+
 chrome_options = Options()
+
+# Binary Location ကို သတ်မှတ်ခြင်း
+chrome_options.binary_location = CHROMIUM_BINARY_PATH
+
 chrome_options.add_argument("--headless")              
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--window-size=1920,1080")  
+chrome_options.add_argument('--disable-gpu') # Timeout မဖြစ်အောင် ကူညီနိုင်သော Argument
 
 # ====================================================================
 # AUTOMATION FUNCTIONS
@@ -42,8 +52,10 @@ def setup_browser():
     """Chrome Driver ကို စတင်ပြီး Console Link သို့ သွားရောက်ခြင်း။"""
     print("🚀 Automation စတင်ပါသည်။")
     try:
-        # VPS ပေါ်တွင် ChromeDriver သည် System Path တွင် ရှိသည်ဟု ယူဆပါသည်
-        driver = webdriver.Chrome(options=chrome_options)
+        # Service ကို သုံးပြီး Driver Path ကို တိကျစွာ ပေးခြင်း
+        service = Service(executable_path=CHROME_DRIVER_PATH)
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        
         driver.get(GCP_CONSOLE_LINK)
         print("🔗 Console Link သို့ အောင်မြင်စွာ ရောက်ရှိပါပြီ။")
         return driver
@@ -58,6 +70,7 @@ def handle_console_setup(driver):
 
     # 1. "I understand" နှိပ်ခြင်း
     try:
+        # GCP Console ရဲ့ Welcome Dialog ပေါ်လာသည်အထိ စောင့်ဆိုင်းခြင်း
         i_understand_button = wait.until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'I understand')]"))
         )
@@ -68,16 +81,17 @@ def handle_console_setup(driver):
 
     # 2. Country ရွေးခြင်း နှင့် Terms of Service သဘောတူခြင်း
     try:
-        # 'AGREE AND CONTINUE' Button ပေါ်လာသည်အထိ စောင့်ဆိုင်းခြင်း
+        # Terms of Service Dialog ပေါ်လာသည်အထိ စောင့်ဆိုင်းခြင်း
         agree_and_continue_button = wait.until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'AGREE AND CONTINUE')]"))
         )
         
-        # Country Select (Singapore) ကို ရွေးရန်
+        # Country Select (Singapore)
         country_select = driver.find_element(By.TAG_NAME, "md-select")
         country_select.click()
         time.sleep(1) # Dropdown ပေါ်လာဖို့ စောင့်ဆိုင်း
         
+        # Singapore ကို ရွေးရန်
         singapore_option = driver.find_element(By.XPATH, "//md-option[contains(., 'Singapore')]")
         singapore_option.click()
         print("✅ Country ကို Singapore ရွေးချယ်ပြီးပါပြီ။")
@@ -108,7 +122,6 @@ def execute_cloud_shell(driver):
     
     # 2. Cloud Shell Terminal ပေါ်လာသည်အထိ စောင့်ဆိုင်းခြင်း
     print("⏳ Terminal ပေါ်လာသည်အထိ စောင့်ဆိုင်းနေပါသည်။...")
-    # Terminal ရဲ့ Input Field ကို တိကျစွာ ရှာဖွေခြင်း
     cloud_shell_input_selector = 'span[role="textbox"][aria-label="Cloud Shell Terminal"]'
     
     cloud_shell_input = wait.until(
@@ -125,7 +138,6 @@ def execute_cloud_shell(driver):
     
     # 4. Enter Key (၁၀) ကြိမ် ပို့လွှတ်ခြင်း
     print(f"Sending {TOTAL_ENTERS} Enter Keys to handle prompts...")
-    # Script Run ပြီးနောက် ပထမဆုံး Prompt ပေါ်လာရန် ၅ စက္ကန့် စောင့်ဆိုင်းခြင်း
     time.sleep(5) 
     
     for i in range(TOTAL_ENTERS):
