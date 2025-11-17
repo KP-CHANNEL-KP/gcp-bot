@@ -111,7 +111,7 @@ def handle_console_setup(driver):
 
 def execute_cloud_shell(driver):
     """Cloud Shell ဖွင့်ခြင်း၊ Script Run ခြင်းနှင့် Enter Key များ ပို့လွှတ်ခြင်း။"""
-    wait = WebDriverWait(driver, 60)
+    wait = WebDriverWait(driver, 90)
     
     # 1. Cloud Shell Button ကို နှိပ်ခြင်း
     print("☁️ Cloud Shell ကို စတင် ဖွင့်နေပါသည်။")
